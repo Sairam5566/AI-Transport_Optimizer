@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Logistics Optimizer - Scheduler</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Error/Success Message Toast -->
+    <div id="messageToast" class="message-toast"></div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-ship"></i>
+            <span>AI Logistics Optimizer</span>
+        </div>
+        
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-btn">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/vessels" class="nav-btn">
+                <i class="fas fa-anchor"></i>
+                Vessels
+            </a>
+            <a href="/ports" class="nav-btn">
+                <i class="fas fa-warehouse"></i>
+                Ports
+            </a>
+            <a href="/plants" class="nav-btn">
+                <i class="fas fa-industry"></i>
+                Plants
+            </a>
+            <a href="/trains" class="nav-btn">
+                <i class="fas fa-train"></i>
+                Trains
+            </a>
+            <a href="/scheduler" class="nav-btn active">
+                <i class="fas fa-truck"></i>
+                Scheduler
+            </a>
+            <a href="/optimization" class="nav-btn">
+                <i class="fas fa-magic"></i>
+                Optimization
+            </a>
+        </div>
+        
+        <div class="nav-user">
+            <span class="user-info">
+                <i class="fas fa-user-circle"></i>
+                {{ username }} ({{ role.title() }})
+            </span>
+            <form action="/logout" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3><i class="fas fa-bolt"></i> Actions</h3>
+                <button class="action-btn" onclick="runScheduler()">
+                    <i class="fas fa-route"></i>
+                    Generate Truck Schedule
+                </button>
+                <button class="action-btn" onclick="runOptimizer()">
+                    <i class="fas fa-gas-pump"></i>
+                    Run Cost & Fuel Optimizer
+                </button>
+                <button class="action-btn" onclick="exportScheduleCSV()">
+                    <i class="fas fa-file-export"></i>
+                    Export Schedule CSV
+                </button>
+                <button class="action-btn" onclick="exportAllocationsCSV()">
+                    <i class="fas fa-download"></i>
+                    Export Allocations CSV
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <div class="portal-header">
+                <h2><i class="fas fa-truck"></i> AI-Powered Truck Scheduler</h2>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="tripsCount">0</span>
+                        <span class="stat-label">Trips</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalFuel">0 L</span>
+                        <span class="stat-label">Total Fuel</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalCost">$0</span>
+                        <span class="stat-label">Total Cost</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <h3>Generated Truck Schedule</h3>
+                <div class="table-wrapper">
+                    <table class="data-table" id="scheduleTable">
+                        <thead>
+                            <tr>
+                                <th>Truck ID</th>
+                                <th>Origin</th>
+                                <th>Destination</th>
+                                <th>Depart</th>
+                                <th>Arrive</th>
+                                <th>Distance (km)</th>
+                                <th>Fuel (L)</th>
+                                <th>Cost ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="data-table-container" style="margin-top: 20px;">
+                <h3>Optimizer Allocations</h3>
+                <div class="table-wrapper">
+                    <table class="data-table" id="allocTable">
+                        <thead>
+                            <tr>
+                                <th>From Port</th>
+                                <th>To Plant</th>
+                                <th>Tonnes</th>
+                                <th>Distance (km)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allocTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/scheduler.js"></script>
+</body>
+</html>

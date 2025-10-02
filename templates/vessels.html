@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Logistics Optimizer - Vessels</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Error/Success Message Toast -->
+    <div id="messageToast" class="message-toast"></div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-ship"></i>
+            <span>AI Logistics Optimizer</span>
+        </div>
+        
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-btn">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/vessels" class="nav-btn active">
+                <i class="fas fa-anchor"></i>
+                Vessels
+            </a>
+            <a href="/ports" class="nav-btn">
+                <i class="fas fa-warehouse"></i>
+                Ports
+            </a>
+            <a href="/plants" class="nav-btn">
+                <i class="fas fa-industry"></i>
+                Plants
+            </a>
+            <a href="/trains" class="nav-btn">
+                <i class="fas fa-train"></i>
+                Trains
+            </a>
+            <a href="/scheduler" class="nav-btn">
+                <i class="fas fa-truck"></i>
+                Scheduler
+            </a>
+            <a href="/optimization" class="nav-btn">
+                <i class="fas fa-magic"></i>
+                Optimization
+            </a>
+        </div>
+        
+        <div class="nav-user">
+            <span class="user-info">
+                <i class="fas fa-user-circle"></i>
+                {{ username }} ({{ role.title() }})
+            </span>
+            <form action="/logout" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3><i class="fas fa-filter"></i> Filters & Search</h3>
+                <div class="filter-group">
+                    <input type="text" id="searchInput" placeholder="Search vessels..." oninput="performSearch()">
+                </div>
+                
+                <div class="filter-group">
+                    <label>Vessel Type:</label>
+                    <select id="vesselTypeFilter" onchange="filterVessels()">
+                        <option value="">All Types</option>
+                        <option value="Bulk Carrier">Bulk Carrier</option>
+                        <option value="Container Ship">Container Ship</option>
+                        <option value="Tanker">Tanker</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="statusFilter" onchange="filterVessels()">
+                        <option value="">All Status</option>
+                        <option value="En Route">En Route</option>
+                        <option value="Delayed">Delayed</option>
+                        <option value="Docked">Docked</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-bell"></i> Alerts & Notifications</h3>
+                <div id="alertsContainer">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>2 vessels experiencing delays</span>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Mumbai Port at 85% capacity</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-cog"></i> Quick Actions</h3>
+                <button class="action-btn" onclick="refreshData()">
+                    <i class="fas fa-sync"></i>
+                    Refresh Data
+                </button>
+                <button class="action-btn" onclick="exportReport()">
+                    <i class="fas fa-download"></i>
+                    Export Report
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <div class="portal-header">
+                <h2><i class="fas fa-anchor"></i> Vessels Portal</h2>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalVessels">0</span>
+                        <span class="stat-label">Total Vessels</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="delayedVessels">0</span>
+                        <span class="stat-label">Delayed</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="enRouteVessels">0</span>
+                        <span class="stat-label">En Route</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="portal-content">
+                <div class="map-container">
+                    <div id="vesselMap" class="map"></div>
+                </div>
+                
+                <div class="data-table-container">
+                    <div class="table-wrapper">
+                        <table class="data-table" id="vesselsTable">
+                            <thead>
+                                <tr>
+                                    <th>MMSI</th>
+                                    <th>Vessel Name</th>
+                                    <th>Type</th>
+                                    <th>Speed (kn)</th>
+                                    <th>Course</th>
+                                    <th>Destination</th>
+                                    <th>ETA</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vesselsTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="vesselModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Vessel Details & Delay Prediction</h3>
+            <div id="vesselModalContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/vessels.js"></script>
+</body>
+</html>

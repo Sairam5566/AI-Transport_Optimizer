@@ -1,0 +1,5 @@
+route_name,rake_capacity_tonnes,wagons,route_distance_km,expected_cost_per_ton,origin,destination
+Mumbai-JSW,1500,30,800,1.2,Mumbai,JSW Steel
+Chennai-Tata,1200,25,650,1.1,Chennai,Tata Steel
+Kolkata-ArcelorMittal,1000,20,500,1.0,Kolkata,ArcelorMittal
+Vizag-JSW,1300,26,700,1.15,Vishakhapatnam,JSW Steel

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Logistics Optimizer - Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Error/Success Message Toast -->
+    <div id="messageToast" class="message-toast"></div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-ship"></i>
+            <span>AI Logistics Optimizer</span>
+        </div>
+        
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-btn active">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/vessels" class="nav-btn">
+                <i class="fas fa-anchor"></i>
+                Vessels
+            </a>
+            <a href="/ports" class="nav-btn">
+                <i class="fas fa-warehouse"></i>
+                Ports
+            </a>
+            <a href="/plants" class="nav-btn">
+                <i class="fas fa-industry"></i>
+                Plants
+            </a>
+            <a href="/trains" class="nav-btn">
+                <i class="fas fa-train"></i>
+                Trains
+            </a>
+            <a href="/scheduler" class="nav-btn">
+                <i class="fas fa-truck"></i>
+                Scheduler
+            </a>
+            <a href="/optimization" class="nav-btn">
+                <i class="fas fa-magic"></i>
+                Optimization
+            </a>
+        </div>
+        
+        <div class="nav-user">
+            <span class="user-info">
+                <i class="fas fa-user-circle"></i>
+                {{ username }} ({{ role.title() }})
+            </span>
+            <form action="/logout" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3><i class="fas fa-filter"></i> Filters & Search</h3>
+                <div class="filter-group">
+                    <input type="text" id="searchInput" placeholder="Search...">
+                    <button id="searchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <div class="filter-group" id="vesselFilters" style="display: block;">
+                    <label>Vessel Type:</label>
+                    <select id="vesselTypeFilter">
+                        <option value="">All Types</option>
+                        <option value="Bulk Carrier">Bulk Carrier</option>
+                        <option value="Container Ship">Container Ship</option>
+                        <option value="Tanker">Tanker</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group" id="portFilters" style="display: none;">
+                    <label>Congestion Level:</label>
+                    <select id="congestionFilter">
+                        <option value="">All Levels</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group" id="plantFilters" style="display: none;">
+                    <label>Urgency Level:</label>
+                    <select id="urgencyFilter">
+                        <option value="">All Levels</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-bell"></i> Alerts & Notifications</h3>
+                <div id="alertsContainer">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>2 vessels experiencing delays</span>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Mumbai Port at 85% capacity</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-cog"></i> Quick Actions</h3>
+                <button class="action-btn" id="optimizeBtn">
+                    <i class="fas fa-magic"></i>
+                    Optimize Routes
+                </button>
+                <button class="action-btn" id="refreshBtn">
+                    <i class="fas fa-sync"></i>
+                    Refresh Data
+                </button>
+                <button class="action-btn" id="exportBtn">
+                    <i class="fas fa-download"></i>
+                    Export Report
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <!-- Dashboard Overview -->
+            <div id="dashboardOverview" class="portal active">
+                <div class="portal-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Logistics Dashboard Overview</h2>
+                    <div class="header-stats">
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalVessels">0</span>
+                            <span class="stat-label">Active Vessels</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalPorts">0</span>
+                            <span class="stat-label">Ports</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalPlants">0</span>
+                            <span class="stat-label">Plants</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalCapacity">0</span>
+                            <span class="stat-label">Total Capacity (MT)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- Key Performance Indicators -->
+                    <div class="dashboard-section kpi-section">
+                        <h3><i class="fas fa-chart-line"></i> Key Performance Indicators</h3>
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-icon vessels"><i class="fas fa-ship"></i></div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="vesselEfficiency">87%</div>
+                                    <div class="kpi-label">Vessel Efficiency</div>
+                                    <div class="kpi-change positive" id="vesselChange">+2.3%</div>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon ports"><i class="fas fa-warehouse"></i></div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="portUtilization">73%</div>
+                                    <div class="kpi-label">Port Utilization</div>
+                                    <div class="kpi-change negative" id="portChange">-1.2%</div>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon plants"><i class="fas fa-industry"></i></div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="plantDemand">92%</div>
+                                    <div class="kpi-label">Plant Demand Met</div>
+                                    <div class="kpi-change positive" id="plantChange">+5.1%</div>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon optimization"><i class="fas fa-magic"></i></div>
+                                <div class="kpi-content">
+                                    <div class="kpi-value" id="costSavings">$2.3M</div>
+                                    <div class="kpi-label">Cost Savings</div>
+                                    <div class="kpi-change positive" id="savingsChange">+12.5%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="dashboard-section charts-section">
+                        <div class="charts-container">
+                            <div class="chart-card">
+                                <h4>Fleet Status Distribution</h4>
+                                <canvas id="fleetStatusChart"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <h4>Port Capacity Overview</h4>
+                                <canvas id="portCapacityOverview"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <h4>Material Demand Trends</h4>
+                                <canvas id="materialTrendsChart"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <h4>Cost Analysis</h4>
+                                <canvas id="costAnalysisOverview"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Map Section -->
+                    <div class="dashboard-section map-section">
+                        <h3><i class="fas fa-map-marked-alt"></i> Live Fleet Tracking</h3>
+                        <div class="map-container">
+                            <div id="dashboardMap" class="map"></div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="dashboard-section activities-section">
+                        <h3><i class="fas fa-clock"></i> Recent Activities</h3>
+                        <div class="activities-list" id="recentActivities">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+
+                    <!-- Critical Alerts -->
+                    <div class="dashboard-section alerts-section">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Critical Alerts</h3>
+                        <div class="alerts-list" id="criticalAlerts">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="dashboard-section actions-section">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                        <div class="quick-actions">
+                            <button class="action-btn" onclick="window.location.href='/vessels'">
+                                <i class="fas fa-anchor"></i>
+                                View All Vessels
+                            </button>
+                            <button class="action-btn" onclick="window.location.href='/ports'">
+                                <i class="fas fa-warehouse"></i>
+                                Manage Ports
+                            </button>
+                            <button class="action-btn" onclick="window.location.href='/plants'">
+                                <i class="fas fa-industry"></i>
+                                Plant Operations
+                            </button>
+                            <button class="action-btn" onclick="window.location.href='/optimization'">
+                                <i class="fas fa-magic"></i>
+                                Run Optimization
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ports Portal -->
+            <div id="portsPortal" class="portal">
+                <div class="portal-header">
+                    <h2><i class="fas fa-warehouse"></i> Ports Portal</h2>
+                    <div class="header-stats">
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalPorts">0</span>
+                            <span class="stat-label">Total Ports</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="avgCapacity">0%</span>
+                            <span class="stat-label">Avg Capacity</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalCost">$0</span>
+                            <span class="stat-label">Total Cost</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="portal-content">
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <canvas id="portCapacityChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <canvas id="costAnalysisChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="data-table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table" id="portsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Port ID</th>
+                                        <th>Port Name</th>
+                                        <th>Capacity</th>
+                                        <th>Current Stock</th>
+                                        <th>Available</th>
+                                        <th>Handling Cost</th>
+                                        <th>Congestion</th>
+                                        <th>Expected Vessels</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="portsTableBody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plants Portal -->
+            <div id="plantsPortal" class="portal">
+                <div class="portal-header">
+                    <h2><i class="fas fa-industry"></i> Plants Portal</h2>
+                    <div class="header-stats">
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalPlants">0</span>
+                            <span class="stat-label">Total Plants</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="urgentRequests">0</span>
+                            <span class="stat-label">Urgent Requests</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="totalDemand">0</span>
+                            <span class="stat-label">Total Demand (MT)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="portal-content">
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <canvas id="demandSupplyChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <canvas id="materialDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="data-table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table" id="plantsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Plant ID</th>
+                                        <th>Plant Name</th>
+                                        <th>Iron Ore Req.</th>
+                                        <th>Coal Req.</th>
+                                        <th>Limestone Req.</th>
+                                        <th>Rail Connectivity</th>
+                                        <th>Urgency</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="plantsTableBody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="vesselModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Vessel Details & Delay Prediction</h3>
+            <div id="vesselModalContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <div id="optimizationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Optimization Results</h3>
+            <div id="optimizationModalContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/dashboard_overview.js"></script>
+</body>
+</html>

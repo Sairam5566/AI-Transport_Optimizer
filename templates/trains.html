@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Logistics Optimizer - Trains</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Error/Success Message Toast -->
+    <div id="messageToast" class="message-toast"></div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-ship"></i>
+            <span>AI Logistics Optimizer</span>
+        </div>
+        
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-btn">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/vessels" class="nav-btn">
+                <i class="fas fa-anchor"></i>
+                Vessels
+            </a>
+            <a href="/ports" class="nav-btn">
+                <i class="fas fa-warehouse"></i>
+                Ports
+            </a>
+            <a href="/plants" class="nav-btn">
+                <i class="fas fa-industry"></i>
+                Plants
+            </a>
+            <a href="/trains" class="nav-btn active">
+                <i class="fas fa-train"></i>
+                Trains
+            </a>
+            <a href="/scheduler" class="nav-btn">
+                <i class="fas fa-truck"></i>
+                Scheduler
+            </a>
+            <a href="/optimization" class="nav-btn">
+                <i class="fas fa-magic"></i>
+                Optimization
+            </a>
+        </div>
+        
+        <div class="nav-user">
+            <span class="user-info">
+                <i class="fas fa-user-circle"></i>
+                {{ username }} ({{ role.title() }})
+            </span>
+            <form action="/logout" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3><i class="fas fa-filter"></i> Filters & Search</h3>
+                <div class="filter-group">
+                    <input type="text" id="searchInput" placeholder="Search trains..." oninput="applyFilters()">
+                </div>
+                <div class="filter-group">
+                    <label>Supplier:</label>
+                    <select id="supplierFilter" onchange="applyFilters()">
+                        <option value="">All Suppliers</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Commodity:</label>
+                    <select id="commodityFilter" onchange="applyFilters()">
+                        <option value="">All Commodities</option>
+                        <option value="Iron Ore">Iron Ore</option>
+                        <option value="Coal">Coal</option>
+                        <option value="Limestone">Limestone</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Status:</label>
+                    <select id="statusFilter" onchange="applyFilters()">
+                        <option value="">All Status</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="En Route">En Route</option>
+                        <option value="Arrived">Arrived</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3><i class="fas fa-cog"></i> Quick Actions</h3>
+                <button class="action-btn" onclick="refreshTrains()">
+                    <i class="fas fa-sync"></i>
+                    Refresh Data
+                </button>
+                <button class="action-btn" onclick="exportSuppliersCSV()">
+                    <i class="fas fa-file-export"></i>
+                    Export Suppliers CSV
+                </button>
+                <button class="action-btn" onclick="exportTrainsCSV()">
+                    <i class="fas fa-download"></i>
+                    Export All Trains
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <div class="portal-header">
+                <h2><i class="fas fa-train"></i> Train Freight & Rake Capacity</h2>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalTrains">0</span>
+                        <span class="stat-label">Total Trains</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalCapacity">0</span>
+                        <span class="stat-label">Total Capacity (t)</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="avgCost">$0</span>
+                        <span class="stat-label">Avg Cost/ton</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <div class="table-wrapper">
+                    <table class="data-table" id="trainsTable">
+                        <thead>
+                            <tr>
+                                <th>Train ID</th>
+                                <th>Supplier</th>
+                                <th>Origin Port</th>
+                                <th>Destination Plant</th>
+                                <th>Commodity</th>
+                                <th>Wagons</th>
+                                <th>Rake Type</th>
+                                <th>Capacity (t)</th>
+                                <th>Distance (km)</th>
+                                <th>Departure</th>
+                                <th>Arrival</th>
+                                <th>Status</th>
+                                <th>Cost/ton ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trainsTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/trains.js"></script>
+</body>
+</html>

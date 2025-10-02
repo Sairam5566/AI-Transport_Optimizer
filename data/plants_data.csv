@@ -1,0 +1,4 @@
+plant_name,capacity_mtpa,required_materials_iron_ore,required_materials_coal,required_materials_limestone,current_stock_iron_ore,current_stock_coal,current_stock_limestone,stock_days_remaining_iron_ore,stock_days_remaining_coal,stock_days_remaining_limestone,location_lat,location_lon
+JSW Steel,12.0,6.0,4.0,2.0,3.0,2.0,1.0,45,30,60,15.05,75.88
+Tata Steel,10.0,5.0,3.5,1.5,2.5,1.8,0.8,35,25,40,22.57,88.36
+ArcelorMittal,8.0,4.0,2.8,1.2,2.0,1.5,0.6,30,20,30,17.69,83.22

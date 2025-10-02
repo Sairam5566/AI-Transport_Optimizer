@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Logistics Optimizer - Optimization</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Error/Success Message Toast -->
+    <div id="messageToast" class="message-toast"></div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-ship"></i>
+            <span>AI Logistics Optimizer</span>
+        </div>
+        
+        <div class="nav-menu">
+            <a href="/dashboard" class="nav-btn">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard
+            </a>
+            <a href="/vessels" class="nav-btn">
+                <i class="fas fa-anchor"></i>
+                Vessels
+            </a>
+            <a href="/ports" class="nav-btn">
+                <i class="fas fa-warehouse"></i>
+                Ports
+            </a>
+            <a href="/plants" class="nav-btn">
+                <i class="fas fa-industry"></i>
+                Plants
+            </a>
+            <a href="/trains" class="nav-btn">
+                <i class="fas fa-train"></i>
+                Trains
+            </a>
+            <a href="/scheduler" class="nav-btn">
+                <i class="fas fa-truck"></i>
+                Scheduler
+            </a>
+            <a href="/optimization" class="nav-btn active">
+                <i class="fas fa-magic"></i>
+                Optimization
+            </a>
+        </div>
+        
+        <div class="nav-user">
+            <span class="user-info">
+                <i class="fas fa-user-circle"></i>
+                {{ username }} ({{ role.title() }})
+            </span>
+            <form action="/logout" method="post" style="display: inline;">
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3><i class="fas fa-cog"></i> Optimization Settings</h3>
+                <div class="filter-group">
+                    <label>Optimization Type:</label>
+                    <select id="optimizationType">
+                        <option value="cost">Cost Minimization</option>
+                        <option value="time">Time Minimization</option>
+                        <option value="balanced">Balanced</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Priority Material:</label>
+                    <select id="priorityMaterial">
+                        <option value="">All Materials</option>
+                        <option value="iron_ore">Iron Ore</option>
+                        <option value="coal">Coal</option>
+                        <option value="limestone">Limestone</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Time Horizon (days):</label>
+                    <input type="number" id="timeHorizon" value="30" min="1" max="365">
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-bell"></i> Alerts & Notifications</h3>
+                <div id="alertsContainer">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>2 vessels experiencing delays</span>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Mumbai Port at 85% capacity</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-magic"></i> Quick Actions</h3>
+                <button class="action-btn" onclick="runOptimization()">
+                    <i class="fas fa-play"></i>
+                    Run Optimization
+                </button>
+                <button class="action-btn" onclick="saveOptimization()">
+                    <i class="fas fa-save"></i>
+                    Save Results
+                </button>
+                <button class="action-btn" onclick="exportReport()">
+                    <i class="fas fa-download"></i>
+                    Export Report
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content">
+            <div class="portal-header">
+                <h2><i class="fas fa-magic"></i> Optimization Portal</h2>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalSavings">$0</span>
+                        <span class="stat-label">Potential Savings</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="optimizationTime">0</span>
+                        <span class="stat-label">Optimization Time (s)</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="solutionQuality">0%</span>
+                        <span class="stat-label">Solution Quality</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="portal-content">
+                <div class="optimization-results" id="optimizationResults" style="display: none;">
+                    <div class="results-header">
+                        <h3>Optimization Results</h3>
+                        <span class="result-status" id="resultStatus">Optimal</span>
+                    </div>
+                    
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <canvas id="costComparisonChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <canvas id="allocationChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendations-section">
+                        <h4>Recommendations</h4>
+                        <div id="recommendationsList">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="optimization-placeholder" id="optimizationPlaceholder">
+                    <div class="placeholder-content">
+                        <i class="fas fa-magic fa-4x"></i>
+                        <h3>Ready to Optimize</h3>
+                        <p>Configure your optimization settings in the sidebar and click "Run Optimization" to get started.</p>
+                        <button class="btn-primary" onclick="runOptimization()">
+                            <i class="fas fa-play"></i>
+                            Start Optimization
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="data-table-container" id="allocationTable" style="display: none;">
+                    <h4>Allocation Details</h4>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Route</th>
+                                    <th>Material</th>
+                                    <th>Quantity (MT)</th>
+                                    <th>Cost ($)</th>
+                                    <th>Transit Time (days)</th>
+                                    <th>Priority</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allocationTableBody">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="optimizationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Optimization Progress</h3>
+            <div id="optimizationModalContent">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Running optimization algorithm...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/optimization.js"></script>
+</body>
+</html>
