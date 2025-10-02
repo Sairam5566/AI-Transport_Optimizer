@@ -1,0 +1,36 @@
+{
+  "train_numbers": [
+    "12951",
+    "12301",
+    "12009",
+    "16031",
+    "18047"
+  ],
+  "station_coordinates": {
+    "CSTM": [
+      18.9401,
+      72.8352
+    ],
+    "HWH": [
+      22.5804,
+      88.3431
+    ],
+    "NDLS": [
+      28.6431,
+      77.2197
+    ],
+    "MAS": [
+      13.0878,
+      80.2785
+    ],
+    "SBC": [
+      12.9762,
+      77.5993
+    ]
+  },
+  "collection_period_days": 90,
+  "api_keys": {
+    "railway_api": "YOUR_RAILWAY_API_KEY",
+    "openweather": "YOUR_OPENWEATHER_API_KEY"
+  }
+}

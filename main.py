@@ -722,6 +722,56 @@ async def predict_delay(vessel_mmsi: str):
         "message": "Delay prediction requires trained ML model and real vessel data"
     }
 
+@app.get("/api/predict-train-delay")
+async def predict_train_delay(
+    route: str,
+    distance_km: float,
+    scheduled_duration_hours: float,
+    departure_time: str,
+    cargo_weight_tonnes: float,
+    num_wagons: int,
+    origin_lat: float = 19.0760,
+    origin_lon: float = 72.8777
+):
+    """Enhanced train delay prediction using ML models"""
+    try:
+        # Import the prediction service
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), 'ml_models'))
+        
+        from delay_prediction_service import DelayPredictionService
+        
+        # Initialize prediction service
+        prediction_service = DelayPredictionService()
+        
+        # Prepare train data
+        train_data = {
+            'route': route,
+            'distance_km': distance_km,
+            'scheduled_duration_hours': scheduled_duration_hours,
+            'departure_time': departure_time,
+            'cargo_weight_tonnes': cargo_weight_tonnes,
+            'num_wagons': num_wagons,
+            'origin_lat': origin_lat,
+            'origin_lon': origin_lon
+        }
+        
+        # Get prediction
+        result = prediction_service.predict_train_delay(train_data)
+        return result
+        
+    except ImportError:
+        return {
+            "status": "error",
+            "message": "ML model not available. Please train the model first using ml_models/train_delay_predictor.py"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Prediction error: {str(e)}"
+        }
+
 @app.get("/api/optimize")
 async def optimize_logistics():
     """MILP-based cost optimization for logistics"""
